@@ -3,7 +3,7 @@ from discord.ext import commands
 import logging
 from dotenv import load_dotenv
 import os
-
+from openai import OpenAI
 from stayingalive import keep_alive
 
 load_dotenv()
@@ -15,6 +15,10 @@ handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w'
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
+
+client = OpenAI(
+    api_key = os.getenv('OPENAI_TOKEN')
+)
 
 bot = commands.Bot(command_prefix='/', intents=intents)
 
@@ -82,5 +86,17 @@ async def poll(ctx, *, question):
     poll_message = await ctx.send(embed=embed)
     await poll_message.add_reaction("👍")
     await poll_message.add_reaction("👎")
+
+@bot.command()
+async def hey(ctx, *, msg):
+    chat_completion = client.chat.completions.create(
+        messages= [
+            {
+                "role":"user",
+                "content":msg
+            }
+        ],
+        model="gpt"
+    )
 
 bot.run(token, log_handler=handler, log_level=logging.DEBUG)
